@@ -25,6 +25,7 @@ class Service {
         }
     }
 
+
     async updatePost(slug, { title, description, image, audio }) {
         try {
             const post = await this.databases.getDocument(
@@ -150,6 +151,7 @@ class Service {
             return false;
         }
     }
+
 
     async getPostsByCategory(category) {
         try {
