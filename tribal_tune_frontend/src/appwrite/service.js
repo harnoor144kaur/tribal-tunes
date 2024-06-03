@@ -78,6 +78,18 @@ class Service {
         }
     }
 
+    async getAllPosts() {
+        try {
+            return await this.databases.listDocuments(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId
+            );
+        } catch (error) {
+            console.error("Appwrite service :: getAllPosts :: error", error);
+            return false;
+        }
+    }
+
     async getPostsByCategory(category) {
         try {
             return await this.databases.listDocuments(

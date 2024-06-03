@@ -1,36 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { InstrumentSection } from "../components/InstrumentSection"; // Import the new component
+import { InstrumentSection } from "../components/InstrumentSection";
 import service from "../appwrite/service.js";
 import banner from "../assets/banner.png";
+import SearchBar from "../components/SearchBar.jsx";
 
 export const AllInstrument = () => {
   const [loading, setLoading] = useState(true);
+  const [allInstruments, setAllInstruments] = useState([]);
+  const [filteredInstruments, setFilteredInstruments] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const getItems = (category) => {
-    const [items, setItems] = useState([]);
+  useEffect(() => {
+    const fetchAllItems = async () => {
+      setLoading(true);
+      const response = await service.getAllPosts();
+      if (response) {
+        setAllInstruments(response.documents); // Assuming the response contains a 'documents' array
+        setFilteredInstruments(response.documents);
+        
+        // Determine categories that have instruments
+        const categoriesSet = new Set(response.documents.map(item => item.category));
+        setCategories([...categoriesSet]);
+      }
+      setLoading(false);
+    };
 
-    useEffect(() => {
-      const fetchItems = async () => {
-        setLoading(true);
-        const response = await service.getPostsByCategory(category);
-        if (response) {
-          setItems(response.documents); // Assuming the response contains a 'documents' array
-          console.log(response.documents[0].$id);
-        }
-        setLoading(false);
-      };
+    fetchAllItems();
+  }, []);
 
-      fetchItems();
-    }, [category]);
+  const handleSearch = (searchTerm) => {
+    if (searchTerm) {
+      const filtered = allInstruments.filter((item) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredInstruments(filtered);
 
-    return items;
+      // Determine categories that have instruments after filtering
+      const filteredCategories = new Set(filtered.map(item => item.category));
+      setCategories([...filteredCategories]);
+    } else {
+      setFilteredInstruments(allInstruments);
+      
+      // Reset categories to show all
+      setCategories([...new Set(allInstruments.map(item => item.category))]);
+    }
   };
-
-  const stringInstruments = getItems("String");
-  const blownInstruments = getItems("Blowen");
-  const percussionInstruments = getItems("Percussion");
-  const solidInstruments = getItems("Solid");
-  const otherInstruments = getItems("Others");
 
   if (loading) {
     return <div>Loading...</div>;
@@ -59,99 +73,24 @@ export const AllInstrument = () => {
               </h1>
               <p className="max-w-lg mx-auto mt-6 text-base font-normal leading-7 text-gray-300"></p>
 
-              <form
-                action="#"
-                className="max-w-xl mx-auto mt-10 flex justify-between"
-              >
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </div>
-
-                  <input
-                    type="text"
-                    name=""
-                    id=""
-                    placeholder="Search an Instrument..."
-                    className="rounded-md block w-full py-3 pl-10 pr-4 text-base font-normal leading-7 text-gray-900 placeholder-gray-500 bg-white border border-white focus:ring-white focus:border-white focus:ring-offset-2"
-                  />
-                </div>
-
-                <div>
-                  <button
-                    type="submit"
-                    className="
-                inline-flex
-                items-center
-                justify-center
-                px-6
-                py-4
-                text-sm
-                font-bold
-                tracking-widest
-                text-white
-                uppercase
-                transition-all
-                duration-200
-                bg-amber-950
-                border border-transparent
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white
-                hover:bg-amber-900
-                rounded-md
-            "
-                  >
-                    Search
-                  </button>
-                </div>
-              </form>
+              {/* Search bar */}
+              <SearchBar items={allInstruments} onSearch={handleSearch} />
 
               <div className="grid max-w-md grid-cols-2 mx-auto mt-8 md:mt-16 lg:mt-24 xl:mt-32 gap-x-6 grid-col-2"></div>
             </div>
           </div>
         </div>
 
-        {/* String Instruments Section */}
-        <InstrumentSection
-          instruments={stringInstruments}
-          sectionTitle="String Instruments"
-        />
-
-        {/* Blown Instruments Section */}
-        <InstrumentSection
-          instruments={blownInstruments}
-          sectionTitle="Blown Instruments"
-        />
-
-        {/* Percussion Instrument Section */}
-        <InstrumentSection
-          instruments={percussionInstruments}
-          sectionTitle="Percussion Instruments"
-        />
-
-        {/* Solid Instrument Section */}
-        <InstrumentSection
-          instruments={solidInstruments}
-          sectionTitle="Solid Instruments"
-        />
-
-        {/* Other Instrument Section */}
-        <InstrumentSection
-          instruments={otherInstruments}
-          sectionTitle="Other Instruments"
-        />
+        {/* Render instrument sections */}
+        {categories.map((category) => (
+          filteredInstruments.some(inst => inst.category === category) && (
+            <InstrumentSection
+              key={category}
+              instruments={filteredInstruments.filter((inst) => inst.category === category)}
+              sectionTitle={`${category} Instruments`}
+            />
+          )
+        ))}
       </section>
     </div>
   );
