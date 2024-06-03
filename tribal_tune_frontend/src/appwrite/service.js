@@ -40,11 +40,35 @@ class Service {
 
     async deletePost(slug) {
         try {
+            const post = await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug
+            );
+    
+            if (!post) {
+                throw new Error(`Post with slug ${slug} not found`);
+            }
+    
+            // Extract audio and video file URLs from the post
+            const audioUrl = post.audio;
+            const imageUrl = post.image;
+    
+            // Delete the post document
             await this.databases.deleteDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug
             );
+    
+            // Extract file names from the URLs
+            const audioFileName = audioUrl.split('/').slice(-2, -1)[0];
+            const imageFileName = imageUrl.split('/').slice(-2, -1)[0];
+    
+            // Delete associated files from their respective buckets
+            await this.deleteFile(conf.appwriteAudioBucketId, audioFileName);
+            await this.deleteFile(conf.appwriteImageBucketId, imageFileName);
+    
             return true;
         } catch (error) {
             console.error("Appwrite service :: deletePost :: error", error);
@@ -129,12 +153,12 @@ class Service {
         }
     }
 
-    async deleteFile(fileId) {
+    async deleteFile(bucketId, fileName) {
         try {
-            await this.bucket.deleteFile(conf.appwriteBucketId, fileId);
+            await this.bucket.deleteFile(bucketId, fileName);
             return true;
         } catch (error) {
-            console.error("Appwrite service :: deleteFile :: error", error);
+            console.error(`Appwrite service :: deleteFile :: error deleting file ${fileName} from bucket ${bucketId}`, error);
             return false;
         }
     }
