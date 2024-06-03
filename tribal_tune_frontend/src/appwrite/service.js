@@ -27,16 +27,53 @@ class Service {
 
     async updatePost(slug, { title, description, image, audio }) {
         try {
+            const post = await this.databases.getDocument(
+                conf.appwriteDatabaseId,
+                conf.appwriteCollectionId,
+                slug
+            );
+
+            if (!post) {
+                throw new Error(`Post with slug ${slug} not found`);
+            }
+
+            // Extract current audio and image file names from URLs
+            const currentAudioFileName = post.audio.split('/').slice(-2, -1)[0];
+            const currentImageFileName = post.image.split('/').slice(-2, -1)[0];
+
+            // If new files are provided, upload them and update the URLs
+            let imageUrl = post.image;
+            if (image) {
+                // Delete the current image file if it exists
+                if (currentImageFileName) {
+                    await this.deleteFile(conf.appwriteImageBucketId,currentImageFileName);
+                }
+                const newImageFile = await this.uploadImageFile(image);
+                imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${conf.appwriteImageBucketId}/files/${newImageFile.$id}/view?project=${conf.appwriteProjectId}&mode=admi`
+            }
+
+            let audioUrl = post.audio;
+            if (audio) {
+                // Delete the current audio file if it exists
+                if (currentAudioFileName) {
+                    await this.deleteFile(conf.appwriteAudioBucketId,currentAudioFileName);
+                }
+                const newAudioFile = await this.uploadAudioFile(audio);
+                audioUrl = `https://cloud.appwrite.io/v1/storage/buckets/${conf.appwriteAudioBucketId}/files/${newAudioFile.$id}/view?project=${conf.appwriteProjectId}&mode=admi`
+            }
+
+            // Update the document in the database
             return await this.databases.updateDocument(
                 conf.appwriteDatabaseId,
                 conf.appwriteCollectionId,
                 slug,
-                { title, description, image, audio }
+                { title, description, image: imageUrl, audio: audioUrl }
             );
         } catch (error) {
             console.error("Appwrite service :: updatePost :: error", error);
         }
     }
+
 
     async deletePost(slug) {
         try {
