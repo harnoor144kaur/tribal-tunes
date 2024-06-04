@@ -47,8 +47,16 @@ export const AddInstrument = () => {
   };
 
   const handleAddInstrument = async () => {
-    if (!selectedFile || !selectedAudio || !instrumentName || instrumentCategory === "" || !instrumentDescription) {
-      alert("Please fill out all fields and upload both image and audio files.");
+    if (
+      !selectedFile ||
+      !selectedAudio ||
+      !instrumentName ||
+      instrumentCategory === "" ||
+      !instrumentDescription
+    ) {
+      alert(
+        "Please fill out all fields and upload both image and audio files."
+      );
       return;
     }
 
@@ -96,7 +104,7 @@ export const AddInstrument = () => {
           <form className="mt-8">
             <div>
               <h2 className="text-center text-2xl font-bold leading-tight text-amber-950 mb-4">
-                UPDATE / ADD INSTRUMENTS
+                ADD INSTRUMENTS
               </h2>
               <div className="mb-">
                 <label
@@ -154,10 +162,11 @@ export const AddInstrument = () => {
                   id="category"
                   value={instrumentCategory}
                   placeholder="Select Category"
-                  onChange={(e) => { setInstrumentCategory(e.currentTarget.value) // Log the new value instead of the previous state
+                  onChange={(e) => {
+                    setInstrumentCategory(e.currentTarget.value); // Log the new value instead of the previous state
                   }}
                 >
-                   <option value="">Choose the value</option>
+                  <option value="">Choose the value</option>
                   <option value="String">String</option>
                   <option value="Blowen">Blowen</option>
                   <option value="Percussion">Percussion</option>
