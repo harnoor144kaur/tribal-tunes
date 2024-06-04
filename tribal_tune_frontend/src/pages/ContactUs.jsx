@@ -1,8 +1,10 @@
+import contact from "../assets/contact-us.png"
+
 const locations = [
     {
       title: 'Arpit Kashyap',
       contact: '8743859690',
-      address: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit consequuntur ullam doloremque quasi aliquid necessitatibus assumenda saepe asperiores voluptatibus nulla.",
+      address: "VIT Bhopal",
     },
     
   ]
@@ -17,8 +19,7 @@ export const ContactUs = () => {
             <div className="grid grid-cols-1 gap-x-20 gap-y-8 lg:grid-cols-2">
               <div className="space-y-4">
                 <p className="w-full text-4xl font-bold text-gray-900">Contact Us</p>
-                <p className="w-full text-lg text-gray-600">Find us at these locations.</p>
-                <img src="./src/assets/contact-us.png" alt="" />
+                <img src={contact} alt="" />
               </div>
               <div className="space-y-4 divide-y-2">
                 {locations.map((location) => (
